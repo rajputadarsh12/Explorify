@@ -1,0 +1,35 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+@theme {
+  --font-sans: 'Outfit', system-ui, sans-serif;
+  --color-primary: #0891b2; /* Ocean Cyan */
+  --color-secondary: #f59e0b; /* Sunset Amber */
+  --color-dark: #0f172a; /* Deep Slate/Navy */
+  --color-light: #f8fafc; /* Slate-50 */
+  
+  /* Override Tailwind grays to match the Navy theme for all fonts */
+  --color-gray-500: #64748b;
+  --color-gray-600: #475569;
+  --color-gray-700: #334155;
+  --color-gray-800: #1e293b;
+  --color-gray-900: #0f172a;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-light);
+    color: var(--color-dark);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@utility glass {
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  border-radius: 0.75rem;
+}
