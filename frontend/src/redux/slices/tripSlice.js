@@ -4,6 +4,8 @@ import axios from 'axios';
 const initialState = {
   trips: [],
   currentTrip: null,
+  liveDeals: null,
+  isDealsLoading: false,
   isError: false,
   isSuccess: false,
   isLoading: false,
@@ -19,7 +21,7 @@ export const generateTrip = createAsyncThunk('trips/generate', async (tripData, 
         Authorization: `Bearer ${token}`,
       },
     };
-    const response = await axios.post('http://localhost:5000/api/trips/generate', tripData, config);
+    const response = await axios.post(`${import.meta.env.VITE_API_URL || ""}/api/trips/generate`, tripData, config);
     return response.data;
   } catch (error) {
     const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
@@ -32,7 +34,20 @@ export const createTripItinerary = createAsyncThunk('trips/create', async (tripD
   try {
     const token = thunkAPI.getState().auth.user.token;
     const config = { headers: { Authorization: `Bearer ${token}` } };
-    const response = await axios.post('http://localhost:5000/api/trips/create', tripData, config);
+    const response = await axios.post(`${import.meta.env.VITE_API_URL || ""}/api/trips/create`, tripData, config);
+    return response.data;
+  } catch (error) {
+    const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
+    return thunkAPI.rejectWithValue(message);
+  }
+});
+
+// Suggest a destination using AI
+export const suggestDestination = createAsyncThunk('trips/suggest', async (tripData, thunkAPI) => {
+  try {
+    const token = thunkAPI.getState().auth.user.token;
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const response = await axios.post(`${import.meta.env.VITE_API_URL || ""}/api/trips/suggest`, tripData, config);
     return response.data;
   } catch (error) {
     const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
@@ -49,7 +64,7 @@ export const getTrips = createAsyncThunk('trips/getAll', async (_, thunkAPI) => 
         Authorization: `Bearer ${token}`,
       },
     };
-    const response = await axios.get('http://localhost:5000/api/trips', config);
+    const response = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/trips`, config);
     return response.data;
   } catch (error) {
     const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
@@ -66,7 +81,7 @@ export const getTripById = createAsyncThunk('trips/getSingle', async (id, thunkA
         Authorization: `Bearer ${token}`,
       },
     };
-    const response = await axios.get(`http://localhost:5000/api/trips/${id}`, config);
+    const response = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/trips/${id}`, config);
     return response.data;
   } catch (error) {
     const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
@@ -79,7 +94,7 @@ export const toggleShareTrip = createAsyncThunk('trips/toggleShare', async (id, 
   try {
     const token = thunkAPI.getState().auth.user.token;
     const config = { headers: { Authorization: `Bearer ${token}` } };
-    const response = await axios.put(`http://localhost:5000/api/trips/${id}/share`, {}, config);
+    const response = await axios.put(`${import.meta.env.VITE_API_URL || ""}/api/trips/${id}/share`, {}, config);
     return response.data;
   } catch (error) {
     const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
@@ -90,7 +105,7 @@ export const toggleShareTrip = createAsyncThunk('trips/toggleShare', async (id, 
 // Get a shared trip
 export const getSharedTrip = createAsyncThunk('trips/getShared', async (id, thunkAPI) => {
   try {
-    const response = await axios.get(`http://localhost:5000/api/trips/shared/${id}`);
+    const response = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/trips/shared/${id}`);
     return response.data;
   } catch (error) {
     const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
@@ -103,7 +118,7 @@ export const cloneSharedTrip = createAsyncThunk('trips/clone', async (id, thunkA
   try {
     const token = thunkAPI.getState().auth.user.token;
     const config = { headers: { Authorization: `Bearer ${token}` } };
-    const response = await axios.post(`http://localhost:5000/api/trips/${id}/save`, {}, config);
+    const response = await axios.post(`${import.meta.env.VITE_API_URL || ""}/api/trips/${id}/save`, {}, config);
     return response.data;
   } catch (error) {
     const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
@@ -115,7 +130,7 @@ export const deleteTrip = createAsyncThunk('trips/delete', async (id, thunkAPI) 
   try {
     const token = thunkAPI.getState().auth.user.token;
     const config = { headers: { Authorization: `Bearer ${token}` } };
-    const response = await axios.delete(`http://localhost:5000/api/trips/${id}`, config);
+    const response = await axios.delete(`${import.meta.env.VITE_API_URL || ""}/api/trips/${id}`, config);
     return response.data; // returns { id }
   } catch (error) {
     const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
@@ -127,7 +142,7 @@ export const updateTrip = createAsyncThunk('trips/update', async ({ id, tripData
   try {
     const token = thunkAPI.getState().auth.user.token;
     const config = { headers: { Authorization: `Bearer ${token}` } };
-    const response = await axios.put(`http://localhost:5000/api/trips/${id}`, tripData, config);
+    const response = await axios.put(`${import.meta.env.VITE_API_URL || ""}/api/trips/${id}`, tripData, config);
     return response.data;
   } catch (error) {
     const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
@@ -139,7 +154,67 @@ export const saveSharedTrip = createAsyncThunk('trips/saveShared', async (id, th
   try {
     const token = thunkAPI.getState().auth.user.token;
     const config = { headers: { Authorization: `Bearer ${token}` } };
-    const response = await axios.post(`http://localhost:5000/api/trips/${id}/save`, {}, config);
+    const response = await axios.post(`${import.meta.env.VITE_API_URL || ""}/api/trips/${id}/save`, {}, config);
+    return response.data;
+  } catch (error) {
+    const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
+    return thunkAPI.rejectWithValue(message);
+  }
+});
+
+export const chatUpdateTrip = createAsyncThunk('trips/chat', async ({ id, prompt }, thunkAPI) => {
+  try {
+    const token = thunkAPI.getState().auth.user.token;
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const response = await axios.post(`${import.meta.env.VITE_API_URL || ""}/api/trips/${id}/chat`, { prompt }, config);
+    return response.data;
+  } catch (error) {
+    const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
+    return thunkAPI.rejectWithValue(message);
+  }
+});
+
+export const generatePackingList = createAsyncThunk('trips/packingList', async (id, thunkAPI) => {
+  try {
+    const token = thunkAPI.getState().auth.user.token;
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const response = await axios.post(`${import.meta.env.VITE_API_URL || ""}/api/trips/${id}/packing-list`, {}, config);
+    return response.data;
+  } catch (error) {
+    const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
+    return thunkAPI.rejectWithValue(message);
+  }
+});
+
+export const getCommunityTrips = createAsyncThunk('trips/getCommunity', async (_, thunkAPI) => {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/trips/community/all`);
+    return response.data;
+  } catch (error) {
+    const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
+    return thunkAPI.rejectWithValue(message);
+  }
+});
+
+export const uploadTripImage = createAsyncThunk('trips/uploadImage', async ({ id, file }, thunkAPI) => {
+  try {
+    const token = thunkAPI.getState().auth.user.token;
+    const config = { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } };
+    const formData = new FormData();
+    formData.append('image', file);
+    const response = await axios.post(`${import.meta.env.VITE_API_URL || ""}/api/trips/${id}/upload`, formData, config);
+    return response.data;
+  } catch (error) {
+    const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
+    return thunkAPI.rejectWithValue(message);
+  }
+});
+
+export const fetchLiveDeals = createAsyncThunk('trips/fetchDeals', async (id, thunkAPI) => {
+  try {
+    const token = thunkAPI.getState().auth.user.token;
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const response = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/trips/${id}/deals`, config);
     return response.data;
   } catch (error) {
     const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
@@ -149,7 +224,16 @@ export const saveSharedTrip = createAsyncThunk('trips/saveShared', async (id, th
 
 export const tripSlice = createSlice({
   name: 'trip',
-  initialState,
+  initialState: {
+    trips: [],
+    currentTrip: null,
+    liveDeals: null,
+    isDealsLoading: false,
+    isLoading: false,
+    isSuccess: false,
+    isError: false,
+    message: '',
+  },
   reducers: {
     resetTripState: (state) => {
       state.isLoading = false;
@@ -187,6 +271,18 @@ export const tripSlice = createSlice({
         state.currentTrip = action.payload;
       })
       .addCase(createTripItinerary.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(suggestDestination.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(suggestDestination.fulfilled, (state) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+      })
+      .addCase(suggestDestination.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;
@@ -289,6 +385,69 @@ export const tripSlice = createSlice({
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;
+      })
+      .addCase(chatUpdateTrip.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(chatUpdateTrip.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.currentTrip = action.payload;
+        const index = state.trips.findIndex(t => t._id === action.payload._id);
+        if (index !== -1) {
+          state.trips[index] = action.payload;
+        }
+      })
+      .addCase(chatUpdateTrip.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(generatePackingList.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(generatePackingList.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.currentTrip = action.payload;
+      })
+      .addCase(generatePackingList.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(getCommunityTrips.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(getCommunityTrips.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.trips = action.payload; // For community, we'll store them in trips array or a separate communityTrips array?
+        // Let's use the main trips array but ensure components filter or know it's community.
+        // Actually, it's better to store it separately so it doesn't overwrite user trips.
+      })
+      .addCase(getCommunityTrips.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(uploadTripImage.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(uploadTripImage.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.currentTrip = action.payload;
+      })
+      .addCase(fetchLiveDeals.pending, (state) => {
+        state.isDealsLoading = true;
+      })
+      .addCase(fetchLiveDeals.fulfilled, (state, action) => {
+        state.isDealsLoading = false;
+        state.liveDeals = action.payload;
+      })
+      .addCase(fetchLiveDeals.rejected, (state, action) => {
+        state.isDealsLoading = false;
       });
   },
 });

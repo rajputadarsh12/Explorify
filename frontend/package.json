@@ -21,10 +21,13 @@
     "@vitejs/plugin-react": "^6.0.2",
     "axios": "^1.16.1",
     "framer-motion": "^12.40.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.16.0",
     "react-leaflet": "^5.0.0",
     "react-redux": "^9.3.0",
-    "react-router-dom": "^7.15.1"
+    "react-router-dom": "^7.15.1",
+    "socket.io-client": "^4.8.3"
   }
 }

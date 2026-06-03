@@ -16,7 +16,7 @@ const initialState = {
 // Register user
 export const register = createAsyncThunk('auth/register', async (user, thunkAPI) => {
   try {
-    const response = await axios.post('http://localhost:5000/api/auth/register', user);
+    const response = await axios.post(`${import.meta.env.VITE_API_URL || ""}/api/auth/register`, user);
     if (response.data) {
       localStorage.setItem('user', JSON.stringify(response.data));
     }
@@ -30,7 +30,7 @@ export const register = createAsyncThunk('auth/register', async (user, thunkAPI)
 // Login user
 export const login = createAsyncThunk('auth/login', async (user, thunkAPI) => {
   try {
-    const response = await axios.post('http://localhost:5000/api/auth/login', user);
+    const response = await axios.post(`${import.meta.env.VITE_API_URL || ""}/api/auth/login`, user);
     if (response.data) {
       localStorage.setItem('user', JSON.stringify(response.data));
     }
@@ -49,7 +49,19 @@ export const getProfile = createAsyncThunk('auth/getProfile', async (_, thunkAPI
   try {
     const token = thunkAPI.getState().auth.user.token;
     const config = { headers: { Authorization: `Bearer ${token}` } };
-    const response = await axios.get('http://localhost:5000/api/users/profile', config);
+    const response = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/users/profile`, config);
+    return response.data;
+  } catch (error) {
+    const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
+    return thunkAPI.rejectWithValue(message);
+  }
+});
+
+export const updatePreferences = createAsyncThunk('auth/updatePreferences', async (data, thunkAPI) => {
+  try {
+    const token = thunkAPI.getState().auth.user.token;
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const response = await axios.put(`${import.meta.env.VITE_API_URL || ""}/api/users/profile/preferences`, data, config);
     return response.data;
   } catch (error) {
     const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
@@ -61,7 +73,7 @@ export const addSavedDestination = createAsyncThunk('auth/addSavedDestination', 
   try {
     const token = thunkAPI.getState().auth.user.token;
     const config = { headers: { Authorization: `Bearer ${token}` } };
-    const response = await axios.post('http://localhost:5000/api/users/profile/destinations', { destination }, config);
+    const response = await axios.post(`${import.meta.env.VITE_API_URL || ""}/api/users/profile/destinations`, { destination }, config);
     return response.data; // returns updated savedDestinations array
   } catch (error) {
     const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
@@ -73,7 +85,7 @@ export const removeSavedDestination = createAsyncThunk('auth/removeSavedDestinat
   try {
     const token = thunkAPI.getState().auth.user.token;
     const config = { headers: { Authorization: `Bearer ${token}` } };
-    const response = await axios.delete(`http://localhost:5000/api/users/profile/destinations/${encodeURIComponent(destination)}`, config);
+    const response = await axios.delete(`${import.meta.env.VITE_API_URL || ""}/api/users/profile/destinations/${encodeURIComponent(destination)}`, config);
     return response.data; // returns updated savedDestinations array
   } catch (error) {
     const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
@@ -128,6 +140,19 @@ export const authSlice = createSlice({
       })
       .addCase(getProfile.fulfilled, (state, action) => {
         state.profile = action.payload;
+      })
+      .addCase(updatePreferences.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(updatePreferences.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.profile = { ...state.profile, ...action.payload };
+      })
+      .addCase(updatePreferences.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
       })
       .addCase(addSavedDestination.fulfilled, (state, action) => {
         if (state.profile) {

@@ -15,9 +15,26 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  points: {
+    type: Number,
+    default: 0,
+  },
+  badges: {
+    type: [String],
+    default: ['Explorer'],
+  },
+  tripsShared: {
+    type: Number,
+    default: 0,
+  },
   avatar: {
     type: String,
     default: '',
+  },
+  gender: {
+    type: String,
+    enum: ['Male', 'Female', 'Other', 'Prefer not to say'],
+    default: 'Prefer not to say',
   },
   savedTrips: [{
     type: mongoose.Schema.Types.ObjectId,

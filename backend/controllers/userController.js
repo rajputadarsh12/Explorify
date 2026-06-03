@@ -23,12 +23,18 @@ export const updatePreferences = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
     if (user) {
-      user.preferences = req.body.preferences || user.preferences;
+      if (req.body.preferences) {
+        user.preferences = req.body.preferences;
+      }
+      if (req.body.gender) {
+        user.gender = req.body.gender;
+      }
       const updatedUser = await user.save();
       res.json({
         _id: updatedUser._id,
         name: updatedUser.name,
         email: updatedUser.email,
+        gender: updatedUser.gender,
         preferences: updatedUser.preferences,
         savedDestinations: updatedUser.savedDestinations
       });

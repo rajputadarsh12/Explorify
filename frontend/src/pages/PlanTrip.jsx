@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { createTripItinerary, resetTripState } from '../redux/slices/tripSlice';
+import { createTripItinerary, resetTripState, suggestDestination, generateTrip } from '../redux/slices/tripSlice';
 import { motion } from 'framer-motion';
 
 function PlanTrip() {
+  const [travelerType, setTravelerType] = useState('experienced');
   const [formData, setFormData] = useState({
     destination: '',
     startDate: '',
@@ -57,7 +58,11 @@ function PlanTrip() {
 
   const onSubmit = (e) => {
     e.preventDefault();
-    dispatch(createTripItinerary(formData));
+    if (travelerType === 'beginner') {
+      dispatch(generateTrip(formData));
+    } else {
+      dispatch(createTripItinerary(formData));
+    }
   };
 
   const prefOptions = ['Adventure', 'Relaxation', 'Culture', 'Food', 'Nature', 'Nightlife', 'Shopping'];
@@ -75,6 +80,21 @@ function PlanTrip() {
       </div>
       <div className="glass p-8">
         <form onSubmit={onSubmit} className="space-y-6">
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Traveler Type</label>
+            <div className="flex gap-4">
+              <label className={`flex-1 text-center py-3 px-4 rounded-xl border cursor-pointer transition ${travelerType === 'experienced' ? 'bg-primary text-white border-primary' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
+                <input type="radio" className="hidden" name="travelerType" value="experienced" checked={travelerType === 'experienced'} onChange={(e) => setTravelerType(e.target.value)} />
+                Experienced
+              </label>
+              <label className={`flex-1 text-center py-3 px-4 rounded-xl border cursor-pointer transition ${travelerType === 'beginner' ? 'bg-primary text-white border-primary' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
+                <input type="radio" className="hidden" name="travelerType" value="beginner" checked={travelerType === 'beginner'} onChange={(e) => setTravelerType(e.target.value)} />
+                Beginner
+              </label>
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700">Destination</label>
             <input 
@@ -175,13 +195,24 @@ function PlanTrip() {
             </div>
           </div>
 
-          <button 
-            type="submit" 
-            disabled={isLoading}
-            className="w-full bg-primary text-white py-4 rounded-xl hover:bg-blue-600 transition font-bold text-lg shadow-[0_0_20px_rgba(14,165,233,0.4)] hover:shadow-[0_0_30px_rgba(14,165,233,0.6)] disabled:opacity-50"
-          >
-            {isLoading ? 'Creating Trip Shell...' : 'Start Planning'}
-          </button>
+          {travelerType === 'experienced' ? (
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className="w-full bg-primary text-white py-4 rounded-xl hover:bg-blue-600 transition font-bold text-lg shadow-[0_0_20px_rgba(14,165,233,0.4)] hover:shadow-[0_0_30px_rgba(14,165,233,0.6)] disabled:opacity-50"
+            >
+              {isLoading ? 'Creating Trip Shell...' : 'Start Planning'}
+            </button>
+          ) : (
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className="w-full bg-secondary text-white py-4 rounded-xl hover:bg-emerald-600 transition font-bold text-lg shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] disabled:opacity-50 flex justify-center items-center gap-2"
+            >
+              {isLoading ? 'Generating Itinerary...' : 'Generate AI Itinerary'}
+              {!isLoading && <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>}
+            </button>
+          )}
         </form>
       </div>
     </motion.div>

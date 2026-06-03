@@ -17,6 +17,10 @@ const tripSchema = new mongoose.Schema({
     required: true,
     ref: 'User',
   },
+  collaborators: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  }],
   destination: {
     type: String,
     required: true,
@@ -41,6 +45,14 @@ const tripSchema = new mongoose.Schema({
     type: [String],
     default: [],
   },
+  packingList: {
+    type: [String],
+    default: [],
+  },
+  images: {
+    type: [String],
+    default: [],
+  },
   itinerary: [dayPlanSchema],
   estimatedCost: {
     flights: Number,
@@ -48,6 +60,13 @@ const tripSchema = new mongoose.Schema({
     food: Number,
     activities: Number,
     total: Number
+  },
+  actualCost: {
+    flights: { type: Number, default: 0 },
+    hotels: { type: Number, default: 0 },
+    food: { type: Number, default: 0 },
+    activities: { type: Number, default: 0 },
+    total: { type: Number, default: 0 }
   },
   isShared: {
     type: Boolean,
